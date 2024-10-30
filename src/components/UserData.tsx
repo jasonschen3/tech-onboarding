@@ -41,7 +41,14 @@ const UserData: React.FC = () => {
 
       // uncomment the line below to test if you have successfully made the API call and retrieved the data. The below line takes
       // the raw request response and extracts the actual data that we need from it.
-      // setUsers(data?.data?.profiles);
+      try {
+        const res = await axios.get(apiUrl(Service.USERS, "/users/hexlabs"));
+        console.log(res.data)
+        setUsers(res.data);
+        console.log("Successful fetch");
+      } catch (error) {
+        console.log("Error fetching users", error);
+      }
     };
     document.title = "Hexlabs Users"
     getUsers();
