@@ -26,41 +26,61 @@ const UserCard: React.FC<Props> = (props: Props) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [hexathons, setHexathons] = useState<any[]>([]);
 
-  // TODO DOESN'T WORK YET
+  // TODO: Create a modal that retrieves all of the hexathons that a user has an application for.
   // Function to fetch hexathons based on user applications
   const fetchUserHexathons = async () => {
     try {
-      console.log(props.user.name.first, props.user.id);
+      console.log(props.user.name.first, props.user.userId);
 
-      // 1) Fetch all hexatons
+      // 1) Fetch all hexathons
       const hexathonsRes = await axios.get(
         apiUrl(Service.HEXATHONS, "/hexathons")
       );
       console.log("All hexathons", hexathonsRes.data);
       const allHexathons = hexathonsRes.data;
-      // 2) Loop thru all hackathons
+
+      // 2) Loop through all hexathons and fetch applications by hexathonId
       const userHexathons = await Promise.all(
         allHexathons.map(async (hexathon: any) => {
           const hexathonId = hexathon.id;
 
-          // Query applications by hexathonId
-          const appRes = await axios.get(
+          // Query applications by hexathonId and userId
+          console.log(
+            "Request URL:",
             apiUrl(Service.REGISTRATION, "/applications"),
-            { params: { hexathon: hexathonId, userId: props.user.id } }
+            {
+              params: { hexathon: hexathonId, userId: props.user.userId },
+            }
+          );
+          const res = await axios.get(
+            apiUrl(Service.REGISTRATION, "/applications"),
+            {
+              params: { hexathon: hexathonId, userId: props.user.userId },
+            }
           );
 
-          console.log(`Applications for hexathon ${hexathonId}:`, appRes.data);
+          console.log("User's hexathons", res.data);
 
-          // If user has an application for this hexathon, return it
-          if (appRes.data.length > 0) {
-            return hexathon;
+          // Check if there are applications for this hexathon and return hexathon info if so
+          if (res.data.applications && res.data.applications.length > 0) {
+            return { id: hexathonId, name: hexathon.name };
+          } else {
+            return null;
           }
         })
       );
-      // TODO
+
+      // Filter out null results and update state
+      setHexathons(userHexathons.filter((hexathon) => hexathon !== null));
     } catch (error) {
       console.error("Error fetching user's hexathons", error);
     }
+  };
+
+  // Resets hexathosn and closes modal
+  const handleClose = () => {
+    setHexathons([]); // Clear hexathons
+    onClose(); // Close the modal
   };
 
   return (
@@ -91,7 +111,7 @@ const UserCard: React.FC<Props> = (props: Props) => {
       </Box>
 
       {/* Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={handleClose}>
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>{`${props.user.name.first} ${props.user.name.middle ? props.user.name.middle + " " : ""} ${props.user.name.last}`}</ModalHeader>
@@ -104,12 +124,17 @@ const UserCard: React.FC<Props> = (props: Props) => {
               </Link>
             </Text>
             <Text>
-              <strong>Phone:</strong> {props.user.phoneNumber}
+              <strong>Phone:</strong>{" "}
+              {props.user.phoneNumber
+                ? props.user.phoneNumber.replace(
+                    /(\d{3})(\d{3})(\d{4})/,
+                    "($1) $2-$3"
+                  )
+                : "N/A"}{" "}
             </Text>
             <Text>
               <strong>User ID:</strong> {props.user.userId}
             </Text>
-
             {/* Display hexathons the user applied to */}
             {hexathons.length > 0 && (
               <>
@@ -128,7 +153,7 @@ const UserCard: React.FC<Props> = (props: Props) => {
             <Button colorScheme="teal" onClick={fetchUserHexathons}>
               Show Applied Hexathons
             </Button>
-            <Button onClick={onClose} ml={3}>
+            <Button onClick={handleClose} ml={3}>
               Close
             </Button>
           </ModalFooter>
