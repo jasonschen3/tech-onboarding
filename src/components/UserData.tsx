@@ -84,17 +84,19 @@ const UserData: React.FC = () => {
 
   return (
     <>
-      <Text fontSize="4xl">Hexlabs Users</Text>
-      <Text fontSize="2xl">
-        This is an example of a page that makes an API call to the Hexlabs API
-        to get a list of users.
+      <Text className="title">
+        <Text fontSize="4xl">Hexlabs Users</Text>
+        <Text fontSize="2xl">
+          This is an example of a page that makes an API call to the Hexlabs API
+          to get a list of users.
+        </Text>
+        <Button onClick={sortByFirst} colorScheme="teal" marginBottom={4}>
+          Sort by First
+        </Button>
+        <Button onClick={randomizeOrder} colorScheme="teal" marginBottom={4}>
+          Randomize Order
+        </Button>
       </Text>
-      <Button onClick={sortByFirst} colorScheme="teal" marginBottom={4}>
-        Sort by First
-      </Button>
-      <Button onClick={randomizeOrder} colorScheme="teal" marginBottom={4}>
-        Randomize Order
-      </Button>
 
       <SimpleGrid columns={[2, 3, 5]} spacing={6} padding={10}>
         {/* Here we are mapping every entry in our users array to a unique UserCard component, each with the unique respective
